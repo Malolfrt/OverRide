@@ -1,0 +1,7 @@
+level06 : h4GtNnaMs2kZFN92ymTr2DcJHAzMfzLW25Ep59mq
+process :
+        - We got a binaire that take two input user (login, serial)
+        - These two args are sent into the auth function who hash the login a compare with the serial
+        - We do a script python who reverse the hash of the auth's function (script.py)
+        - With the script we can find any serial for any login (abcdefgh, 6234502)
+        - Get the flag : GbcPDRgsFK77LNnnuh7QyFYA2942Gp8yKj9KrWD8

